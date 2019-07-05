@@ -78,7 +78,7 @@ initMap = () => {
         scrollWheelZoom: false
       });
   L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.jpg70?access_token={mapboxToken}', {
-    mapboxToken: '<your MAPBOX API KEY HERE>',
+    mapboxToken: 'pk.eyJ1IjoibnVubnlyZXllcyIsImEiOiJjanhubGZzbXgwZnV1M2JwMHh4N3ZmZmRhIn0.IqREc3ZS4P1u9Dr6FQTOTA',
     maxZoom: 18,
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
       '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
@@ -178,6 +178,7 @@ createRestaurantHTML = (restaurant) => {
   const more = document.createElement('a');
   more.innerHTML = 'View Details';
   more.href = DBHelper.urlForRestaurant(restaurant);
+  more.tabIndex = '3'
   li.append(more)
 
   return li
@@ -198,7 +199,7 @@ addMarkersToMap = (restaurants = self.restaurants) => {
   });
 
 } 
-/* addMarkersToMap = (restaurants = self.restaurants) => {
+addMarkersToMap = (restaurants = self.restaurants) => {
   restaurants.forEach(restaurant => {
     // Add marker to the map
     const marker = DBHelper.mapMarkerForRestaurant(restaurant, self.map);
@@ -207,5 +208,70 @@ addMarkersToMap = (restaurants = self.restaurants) => {
     });
     self.markers.push(marker);
   });
-} */
+} 
 
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .register('/sw.js')
+    .catch(function(err) {
+      console.error(err)
+    });
+    console.log('service worker: registered')
+}
+
+self.addEventListener('install', function(e) {
+  e.waitUntil(
+    caches.open('v1').then(function(cache) {
+      return cache.addAll(cacheFiles);
+    })
+  );
+})
+
+const cacheFiles = [
+  '/',
+  '/index.html',
+  '/restaurant.html',
+  '/css/styles.css',
+  '/js/dbhelper.js',
+  '/js/main.js',
+  'js/restaurant_info.js',
+  '/data/restaurant_info.js',
+  '/data/restaurants.json',
+  '/img/1.jpg',
+  '/img/2.jpg',
+  '/img/3.jpg',
+  '/img/4.jpg',
+  '/img/5.jpg',
+  '/img/6.jpg',
+  '/img/7.jpg',
+  '/img/8.jpg',
+  '/img/9.jpg',
+  '/img/10.jpg'
+]
+
+self.addEventListener('fetch', function(e) {
+  e.respondWith(
+    caches.match(e.request).then(function(response) {
+      caches.match(e.request).then(function(response){
+        if(response) {
+          console.log('Found', e.request, 'in cache');
+          return response;
+        }
+        else {
+          console.log('Could not find ', e.request, ' in cache, FETCHING!');
+          return fetch(e.request)
+          .then(function(response) {
+            const clonedResponse = response.clone(); 
+            caches.open('v1').then(function(cache) {
+              cache.put(e.request, response);
+            })
+            return response;
+          })
+          .catch(function(err) { 
+            console.error(err);
+          })
+        }
+      })
+    })
+  );
+});
