@@ -4,10 +4,9 @@
 
 ## Project Overview: 
 
-Completed this project for the FEND nanodegree. 
 ### Build Status
 
-This project has been completed. 
+On hold.
 
 ### Tech/FrameWorks Used
 
